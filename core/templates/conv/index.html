@@ -1,0 +1,9 @@
+{% if messages %}
+    <ul>
+    {% for message in messages %}
+        <li>[{{ message.sender.name }}] {{ message.body }} ({{ message.send_date }}) </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No message to display.</p>
+{% endif %}

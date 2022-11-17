@@ -1,0 +1,9 @@
+{% if convs %}
+    <ul>
+    {% for conv in convs %}
+        <li><a href="{% url 'conv' conv.conv_id %}"> {{ conv.name }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No conversation to display.</p>
+{% endif %}

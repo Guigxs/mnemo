@@ -1,0 +1,15 @@
+admin_creds.txt
+db.sqlite3
+db.sqlite3-journal
+passphrase.txt
+signal-2022-11-15-02-00-01.backup
+script.sh
+signal.session.sql
+test.py
+
+out/
+venv/
+media/
+
+__pycache__/
+.vscode/
