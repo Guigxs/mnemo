@@ -1,3 +1,4 @@
+import datetime
 from django.db import models
 
 SMS = 1
@@ -10,6 +11,27 @@ OTHER = 0
 USER = 1
 GROUP = 2
 
+
+class Server(models.Model):
+    NOTSTARTED = 0
+    RUNNING = 1
+    TERMINATED = 2
+    ERROR = 3
+
+    STATES = (
+        (NOTSTARTED, "Not started"),
+        (RUNNING, "Running"),
+        (TERMINATED, "Terminated"),
+        (ERROR, "Error")
+    )
+    process_state = models.IntegerField(choices=STATES, default=NOTSTARTED)
+    process_start_date = models.DateTimeField(null=True, blank=True, auto_now_add=True)
+    process_end_date = models.DateTimeField(null=True, blank=True)
+
+    
+    def get_elapsed_time(self):
+        return self.process_end_date - self.process_start_date
+    
 
 class Conversation(models.Model):
     CONV_TYPE = (

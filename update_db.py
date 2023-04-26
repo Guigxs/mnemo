@@ -3,10 +3,6 @@ import os
 from distutils.dir_util import copy_tree
 from datetime import datetime
 
-os.environ.setdefault(f"DJANGO_SETTINGS_MODULE", "mnemo.settings")
-import django
-django.setup()
-from core.models import User, Conversation, Message
 
 DB_FILE = "out/signal_backup.db"
 FILE_EXT = {"image/jpeg": {"ext": "jpg", "id": "2"}, "image/png": {"ext": "png", "id": "2"}, "image/webp": {"ext": "jpg", "id": "2"}, "image/gif": {"ext": "gif", "id": "4"},
@@ -65,6 +61,8 @@ def get_messages(conn):
 
 
 def create_users(users):
+    from core.models import User
+
     for user in users:
         if user[4] != "":
             User.objects.create(user_id=user[0], name=user[7] if user[7] else user[6]
@@ -72,6 +70,8 @@ def create_users(users):
 
 
 def create_conversations(conversations):
+    from core.models import User, Conversation
+
     for thread in conversations["threads"]:
         if thread[2] != "":
             Conversation.objects.create(conv_id=thread[1], thread_id=thread[0])
@@ -98,6 +98,8 @@ def create_conversations(conversations):
 
 
 def create_messages(messages, owner):
+    from core.models import User, Conversation, Message
+
     for sms in messages["sms"]:
         try:
             conv = Conversation.objects.get(thread_id=sms[5])
@@ -143,20 +145,46 @@ def create_messages(messages, owner):
             print(
                 f"[Mention] Message {mention[0]} does not exist! Skipping...")
 
+def run_script(db_file, delete=False):
+    from core.models import User, Conversation, Message, Server
 
-conn = connect_db(DB_FILE)
-copy_files()
+    print("Running script...")
+    print("Delete:", delete)
+    
+    conn = connect_db(db_file)
+    copy_files()
 
-Conversation.objects.all().delete()
-User.objects.all().delete()
-Message.objects.all().delete()
+    if delete:
+        Conversation.objects.all().delete()
+        User.objects.all().delete()
+        Message.objects.all().delete()
 
-users = get_users(conn)
-convs = get_conversations(conn)
-messages = get_messages(conn)
+    users = get_users(conn)
+    convs = get_conversations(conn)
+    messages = get_messages(conn)
 
-create_users(users)
-create_conversations(convs)
-create_messages(messages, User.objects.get(user_id=1))
+    create_users(users)
+    create_conversations(convs)
+    create_messages(messages, User.objects.get(user_id=1))
 
-conn.close()
+    conn.close()
+
+    server = Server.objects.get_or_create()[0]
+    server.process_state = Server.TERMINATED
+    server.process_end_date = datetime.now()
+    server.save()
+    
+
+def run_migrations(db_file, delete):
+    os.environ.setdefault(f"DJANGO_SETTINGS_MODULE", "mnemo.settings")
+    import django
+    django.setup()
+
+    run_script(db_file, delete=delete)
+
+if __name__ == "__main__":
+    os.environ.setdefault(f"DJANGO_SETTINGS_MODULE", "mnemo.settings")
+    import django
+    django.setup()
+
+    run_script(DB_FILE, delete=True)

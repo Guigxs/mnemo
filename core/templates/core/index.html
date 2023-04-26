@@ -1,9 +1,23 @@
-{% if convs %}
-    <ul>
-    {% for conv in convs %}
-        <li><a href="{% url 'conv' conv.conv_id %}"> {{ conv.name }}</a></li>
-    {% endfor %}
-    </ul>
-{% else %}
-    <p>No conversation to display.</p>
+<h1>Conversation lists</h1>
+<h3>Status : <span style="color: #ff8000">{{ server.get_process_state_display }}</span></h3>
+<h3>Migration time : 
+    {% if server.process_state == 1 %} 
+        Running... 
+    {% else %} 
+        {{ elapsed_time }} 
+    {% endif %}
+</h3>
+
+<a href="{% url 'upload' %}">Upload new backup</a>
+
+{% if server.process_state == 2 %}
+    {% if convs %}
+        <ul>
+        {% for conv in convs %}
+            <li><a href="{% url 'conv' conv.conv_id %}"> {{ conv.name }}</a></li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No conversation to display.</p>
+    {% endif %}
 {% endif %}
